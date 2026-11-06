@@ -3,28 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Absensi Online PT. Era Mandiri Cemerlang</title>
+    <title>Sistem Absensi Online Terhubung - PT. Era Mandiri Cemerlang</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Firebase SDK (Version 9+ Compatibility / SDK Web) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            #printable-report, #printable-report * {
-                visibility: visible;
-            }
-            #printable-report {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
-            .no-print {
-                display: none !important;
-            }
+            body * { visibility: hidden; }
+            #printable-report, #printable-report * { visibility: visible; }
+            #printable-report { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
@@ -36,13 +28,15 @@
             <div class="flex items-center space-x-3">
                 <i data-lucide="map-pin" class="w-8 h-8"></i>
                 <div>
-                <img src="eralogo.jpg" alt="Logo era" class="w-13 h-10 object-contain">
                     <h1 class="text-xl font-bold tracking-wide">PT. Era Mandiri Cemerlang</h1>
                     <p class="text-xs text-blue-100" id="header-office-info">Radius Kantor: 300m</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
-                <span id="role-badge" class="bg-blue-800 text-xs px-3 py-1.5 rounded-full font-semibold">Mode Karyawan</span>
+                <span id="sync-status" class="bg-blue-800 text-xs px-3 py-1.5 rounded-full font-semibold flex items-center gap-1">
+                    <i data-lucide="wifi" class="w-3 h-3"></i> Sync Live
+                </span>
+                <span id="role-badge" class="bg-blue-900 text-xs px-3 py-1.5 rounded-full font-semibold">Mode Karyawan</span>
                 <button id="btn-toggle-admin" onclick="openAdminAuth()" class="bg-white text-blue-600 px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-50 transition shadow-sm flex items-center gap-1.5">
                     <i data-lucide="lock" class="w-4 h-4"></i> Login Admin
                 </button>
@@ -79,7 +73,7 @@
 
                 <!-- Kolom Kanan: Form Presensi & Kamera Real-Time -->
                 <div class="lg:col-span-7 bg-white rounded-xl shadow-md p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-6 pb-2 border-b">Absensi Online</h2>
+                    <h2 class="text-xl font-bold text-gray-800 mb-6 pb-2 border-b">Absensi Online (Terhubung Multi-Device)</h2>
 
                     <form id="form-absen" onsubmit="handleAbsen(event)" class="space-y-5">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -128,8 +122,8 @@
                             </div>
                         </div>
 
-                        <button type="submit" id="btn-submit-absen" disabled class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 rounded-lg font-bold text-lg transition shadow-md mt-4">
-                            Kirim Absen Sekarang
+                        <button type="submit" id="btn-submit-absen" disabled class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 rounded-lg font-bold text-lg transition shadow-md mt-4 flex justify-center items-center gap-2">
+                            <span>Kirim Absen Sekarang</span>
                         </button>
                     </form>
                 </div>
@@ -140,7 +134,7 @@
         <div id="admin-view" class="hidden space-y-6">
             <div class="flex border-b border-gray-200 bg-white rounded-t-xl px-4 pt-3 no-print">
                 <button onclick="switchAdminTab('laporan')" id="tab-btn-laporan" class="px-5 py-2.5 font-bold border-b-2 border-blue-600 text-blue-600 text-sm flex items-center gap-2">
-                    <i data-lucide="file-text" class="w-4 h-4"></i> Rekap Laporan & Foto
+                    <i data-lucide="file-text" class="w-4 h-4"></i> Rekap Laporan & Foto (Real-Time Cloud)
                 </button>
                 <button onclick="switchAdminTab('pengaturan')" id="tab-btn-pengaturan" class="px-5 py-2.5 font-semibold text-gray-500 hover:text-blue-600 text-sm flex items-center gap-2">
                     <i data-lucide="settings" class="w-4 h-4"></i> Pengaturan Kantor & Lokasi
@@ -155,7 +149,7 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 no-print">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-800">Laporan Absensi Karyawan</h2>
-                        <p class="text-sm text-gray-500">Rekap data kehadiran lengkap dengan foto bukti presensi</p>
+                        <p class="text-sm text-gray-500">Data terhubung secara real-time dari semua HP/Laptop perangkat karyawan</p>
                     </div>
                     <button onclick="window.print()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
                         <i data-lucide="printer" class="w-4 h-4"></i> Cetak Laporan (PDF)
@@ -165,7 +159,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-gray-50 p-4 rounded-lg border no-print">
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Periode Filter</label>
-                        <select id="filter-periode" onchange="renderLaporan()" class="w-full border rounded px-3 py-1.5 text-sm">
+                        <select id="filter-periode" onchange="filterAndRenderTable()" class="w-full border rounded px-3 py-1.5 text-sm">
                             <option value="semua">Semua Records</option>
                             <option value="harian">Hari Ini</option>
                             <option value="mingguan">7 Hari Terakhir</option>
@@ -174,10 +168,10 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Cari Karyawan</label>
-                        <input type="text" id="filter-nama" oninput="renderLaporan()" placeholder="Ketik nama..." class="w-full border rounded px-3 py-1.5 text-sm">
+                        <input type="text" id="filter-nama" oninput="filterAndRenderTable()" placeholder="Ketik nama..." class="w-full border rounded px-3 py-1.5 text-sm">
                     </div>
                     <div class="md:col-span-2 flex items-end justify-end">
-                        <button onclick="clearHistory()" class="text-xs text-red-600 hover:text-red-800 underline">Hapus Semua Data Absensi</button>
+                        <button onclick="clearCloudHistory()" class="text-xs text-red-600 hover:text-red-800 underline font-bold">Hapus Seluruh Data Cloud</button>
                     </div>
                 </div>
 
@@ -202,7 +196,7 @@
                                 </tr>
                             </thead>
                             <tbody id="table-laporan-body">
-                                <!-- Dynamic Render -->
+                                <tr><td colspan="8" class="text-center py-6 text-gray-500">Menghubungkan ke Cloud Database...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -212,7 +206,7 @@
             <!-- Tab 2: Pengaturan Kantor & PIN Admin -->
             <div id="tab-content-pengaturan" class="hidden space-y-6 max-w-xl mx-auto">
                 <div class="bg-white rounded-b-xl shadow-md p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Pengaturan Titik Lokasi Kantor</h2>
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Pengaturan Titik Lokasi Kantor (Cloud Shared)</h2>
                     <form id="form-settings" onsubmit="saveSettings(event)" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Latitude Kantor</label>
@@ -232,14 +226,14 @@
                         </button>
 
                         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg">
-                            Simpan Pengaturan Lokasi
+                            Simpan Pengaturan ke Cloud
                         </button>
                     </form>
                 </div>
 
                 <!-- Section Ganti PIN Admin -->
                 <div class="bg-white rounded-xl shadow-md p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">Ubah PIN Admin</h2>
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Ubah PIN Admin (Cloud)</h2>
                     <form id="form-change-pin" onsubmit="changeAdminPin(event)" class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">PIN Admin Lama</label>
@@ -268,7 +262,7 @@
     <div id="admin-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
             <h3 class="text-lg font-bold text-gray-800 mb-2">Masuk Mode Admin</h3>
-            <p class="text-sm text-gray-600 mb-4">Masukkan PIN Admin untuk mengakses laporan</p>
+            <p class="text-sm text-gray-600 mb-4">Masukkan PIN Admin untuk mengakses laporan terpusat</p>
             <input type="password" id="input-pin" placeholder="Masukkan PIN Admin" class="w-full px-4 py-2 border rounded-lg mb-4 text-center text-xl tracking-widest focus:ring-2 focus:ring-blue-500 focus:outline-none">
             <div class="flex justify-end space-x-2">
                 <button onclick="closeAdminModal()" class="px-4 py-2 border rounded-lg text-sm">Batal</button>
@@ -278,6 +272,7 @@
     </div>
 
     <script>
+        // Default Config sebagai fallback jika Database belum terisi
         const DEFAULT_CONFIG = {
             officeLat: -6.2088,
             officeLng: 106.8456,
@@ -285,6 +280,59 @@
             adminPin: "1234"
         };
 
+        // Konfigurasi Firebase (Project Demo / Custom Config)
+        <script type="module">
+
+  // Import the functions you need from the SDKs you need
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-analytics.js";
+
+  // TODO: Add SDKs for Firebase products that you want to use
+
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+
+  // Your web app's Firebase configuration
+
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+
+  const firebaseConfig = {
+
+    apiKey: "AIzaSyDhJ-Irp0xnYc5WUbHm4F6Bm61NxkTR0w4",
+
+    authDomain: "absensi-era-mandiri.firebaseapp.com",
+
+    projectId: "absensi-era-mandiri",
+
+    storageBucket: "absensi-era-mandiri.firebasestorage.app",
+
+    messagingSenderId: "100599647177",
+
+    appId: "1:100599647177:web:ff89d4972689dcc960f618",
+
+    measurementId: "G-BY8HMX29CZ"
+
+  };
+
+
+  // Initialize Firebase
+
+  const app = initializeApp(firebaseConfig);
+
+  const analytics = getAnalytics(app);
+
+</script>
+
+        // Inisialisasi Firebase App & Realtime Database
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        let currentConfig = { ...DEFAULT_CONFIG };
+        let allAbsenRecords = [];
         let userLat = null;
         let userLng = null;
         let currentDistance = null;
@@ -294,45 +342,72 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            loadSettings();
+            listenToCloudConfig();
+            listenToCloudRecords();
             updateLocation();
-            renderLaporan();
         });
 
-        function getConfig() {
-            const data = localStorage.getItem('absen_config');
-            return data ? JSON.parse(data) : DEFAULT_CONFIG;
+        // 1. Mendengarkan perubahan konfigurasi lokasi & PIN dari Cloud secara Real-time
+        function listenToCloudConfig() {
+            db.ref('config').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    currentConfig = data;
+                } else {
+                    // Jika belum ada di cloud, set default
+                    db.ref('config').set(DEFAULT_CONFIG);
+                }
+                updateUIWithConfig();
+            });
         }
 
-        function loadSettings() {
-            const config = getConfig();
-            document.getElementById('set-lat').value = config.officeLat;
-            document.getElementById('set-lng').value = config.officeLng;
-            document.getElementById('set-radius').value = config.maxRadius;
-            document.getElementById('header-office-info').innerText = `Radius Kantor: ${config.maxRadius}m`;
+        function updateUIWithConfig() {
+            document.getElementById('set-lat').value = currentConfig.officeLat;
+            document.getElementById('set-lng').value = currentConfig.officeLng;
+            document.getElementById('set-radius').value = currentConfig.maxRadius;
+            document.getElementById('header-office-info').innerText = `Radius Kantor: ${currentConfig.maxRadius}m`;
+            if (userLat !== null && userLng !== null) {
+                recalculateDistance();
+            }
+        }
+
+        // 2. Mendengarkan seluruh riwayat absensi secara Real-time dari Cloud (Semua Perangkat Terhubung)
+        function listenToCloudRecords() {
+            db.ref('records').on('value', (snapshot) => {
+                const data = snapshot.val();
+                allAbsenRecords = [];
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        allAbsenRecords.push({ id: key, ...data[key] });
+                    });
+                    // Urutkan dari yang terbaru
+                    allAbsenRecords.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                }
+                filterAndRenderTable();
+            });
         }
 
         function saveSettings(e) {
             e.preventDefault();
-            const config = getConfig();
-            config.officeLat = parseFloat(document.getElementById('set-lat').value);
-            config.officeLng = parseFloat(document.getElementById('set-lng').value);
-            config.maxRadius = parseInt(document.getElementById('set-radius').value);
+            const newConfig = {
+                ...currentConfig,
+                officeLat: parseFloat(document.getElementById('set-lat').value),
+                officeLng: parseFloat(document.getElementById('set-lng').value),
+                maxRadius: parseInt(document.getElementById('set-radius').value)
+            };
 
-            localStorage.setItem('absen_config', JSON.stringify(config));
-            alert('Pengaturan kantor berhasil disimpan!');
-            loadSettings();
-            updateLocation();
+            db.ref('config').set(newConfig).then(() => {
+                alert('Pengaturan lokasi kantor berhasil diperbarui di seluruh perangkat!');
+            }).catch(err => alert('Gagal menyimpan: ' + err.message));
         }
 
         function changeAdminPin(e) {
             e.preventDefault();
-            const config = getConfig();
             const oldPin = document.getElementById('pin-old').value;
             const newPin = document.getElementById('pin-new').value;
             const confirmPin = document.getElementById('pin-confirm').value;
 
-            if (oldPin !== config.adminPin) {
+            if (oldPin !== currentConfig.adminPin) {
                 alert('PIN Admin lama yang Anda masukkan salah!');
                 return;
             }
@@ -347,10 +422,11 @@
                 return;
             }
 
-            config.adminPin = newPin;
-            localStorage.setItem('absen_config', JSON.stringify(config));
-            alert('PIN Admin berhasil diubah!');
-            document.getElementById('form-change-pin').reset();
+            const newConfig = { ...currentConfig, adminPin: newPin };
+            db.ref('config').set(newConfig).then(() => {
+                alert('PIN Admin berhasil diubah di Cloud!');
+                document.getElementById('form-change-pin').reset();
+            }).catch(err => alert('Gagal memperbarui PIN: ' + err.message));
         }
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -368,11 +444,35 @@
             return Math.round(R * c);
         }
 
-        function updateLocation() {
+        function recalculateDistance() {
+            if (userLat === null || userLng === null) return;
+            currentDistance = calculateDistance(userLat, userLng, currentConfig.officeLat, currentConfig.officeLng);
+            
             const box = document.getElementById('geo-status-box');
             const title = document.getElementById('geo-status-title');
             const desc = document.getElementById('geo-status-desc');
             const distText = document.getElementById('geo-distance');
+            const submitBtn = document.getElementById('btn-submit-absen');
+
+            distText.innerText = `Jarak Anda: ${currentDistance} meter dari titik kantor.`;
+
+            if (currentDistance <= currentConfig.maxRadius) {
+                box.className = "bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800 flex items-start gap-3";
+                title.innerText = "Lokasi Valid!";
+                desc.innerText = "Perangkat Anda terdeteksi dalam radius area kantor.";
+                submitBtn.disabled = false;
+            } else {
+                box.className = "bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800 flex items-start gap-3";
+                title.innerText = "Di Luar Jarak Radius!";
+                desc.innerText = `Absen hanya diizinkan maksimal ${currentConfig.maxRadius} meter dari lokasi kantor.`;
+                submitBtn.disabled = true;
+            }
+        }
+
+        function updateLocation() {
+            const box = document.getElementById('geo-status-box');
+            const title = document.getElementById('geo-status-title');
+            const desc = document.getElementById('geo-status-desc');
             const submitBtn = document.getElementById('btn-submit-absen');
 
             if (!navigator.geolocation) {
@@ -386,22 +486,7 @@
                 (position) => {
                     userLat = position.coords.latitude;
                     userLng = position.coords.longitude;
-                    const config = getConfig();
-                    currentDistance = calculateDistance(userLat, userLng, config.officeLat, config.officeLng);
-
-                    distText.innerText = `Jarak Anda: ${currentDistance} meter dari titik kantor.`;
-
-                    if (currentDistance <= config.maxRadius) {
-                        box.className = "bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800 flex items-start gap-3";
-                        title.innerText = "Lokasi Valid!";
-                        desc.innerText = "Perangkat Anda terdeteksi dalam radius area kantor.";
-                        submitBtn.disabled = false;
-                    } else {
-                        box.className = "bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800 flex items-start gap-3";
-                        title.innerText = "Di Luar Jarak Radius!";
-                        desc.innerText = `Absen hanya diizinkan maksimal ${config.maxRadius} meter dari lokasi kantor.`;
-                        submitBtn.disabled = true;
-                    }
+                    recalculateDistance();
                 },
                 (error) => {
                     box.className = "bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800 flex items-start gap-3";
@@ -444,7 +529,7 @@
 
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            base64Photo = canvas.toDataURL('image/jpeg', 0.7);
+            base64Photo = canvas.toDataURL('image/jpeg', 0.6);
 
             document.getElementById('photo-preview').src = base64Photo;
             document.getElementById('photo-preview').classList.remove('hidden');
@@ -456,44 +541,16 @@
             document.getElementById('webcam-container').classList.add('hidden');
         }
 
-        function previewImageFromFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const maxW = 300;
-                    const scale = maxW / img.width;
-                    canvas.width = maxW;
-                    canvas.height = img.height * scale;
-
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    base64Photo = canvas.toDataURL('image/jpeg', 0.7);
-
-                    document.getElementById('photo-preview').src = base64Photo;
-                    document.getElementById('photo-preview').classList.remove('hidden');
-                    document.getElementById('photo-placeholder').classList.add('hidden');
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
         function handleAbsen(e) {
             e.preventDefault();
-            const config = getConfig();
 
-            if (currentDistance === null || currentDistance > config.maxRadius) {
+            if (currentDistance === null || currentDistance > currentConfig.maxRadius) {
                 alert("Gagal: Lokasi Anda di luar radius kantor!");
                 return;
             }
 
             if (!base64Photo) {
-                alert("Silakan ambil foto selfie!!");
+                alert("Silakan ambil foto selfie terlebih dahulu!");
                 return;
             }
 
@@ -503,7 +560,6 @@
             const timestamp = new Date().toISOString();
 
             const newRecord = {
-                id: Date.now(),
                 nama,
                 posisi,
                 tipe,
@@ -513,16 +569,24 @@
                 status: "Valid (Dalam Radius)"
             };
 
-            const records = JSON.parse(localStorage.getItem('absen_records') || '[]');
-            records.unshift(newRecord);
-            localStorage.setItem('absen_records', JSON.stringify(records));
+            const submitBtn = document.getElementById('btn-submit-absen');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Mengirim ke Cloud Database...";
 
-            alert(`Absen ${tipe} Berhasil disimpan!`);
-            document.getElementById('form-absen').reset();
-            base64Photo = "";
-            document.getElementById('photo-preview').classList.add('hidden');
-            document.getElementById('photo-placeholder').classList.remove('hidden');
-            renderLaporan();
+            // Mengirim data ke Firebase Cloud Realtime Database
+            db.ref('records').push(newRecord).then(() => {
+                alert(`Absen ${tipe} Berhasil terkirim dan tersinkronisasi ke server Cloud!`);
+                document.getElementById('form-absen').reset();
+                base64Photo = "";
+                document.getElementById('photo-preview').classList.add('hidden');
+                document.getElementById('photo-placeholder').classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Kirim Absen Sekarang";
+            }).catch(err => {
+                alert("Gagal mengirim data absensi ke cloud: " + err.message);
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Kirim Absen Sekarang";
+            });
         }
 
         function openAdminAuth() {
@@ -540,9 +604,8 @@
         }
 
         function verifyAdminPIN() {
-            const config = getConfig();
             const input = document.getElementById('input-pin').value;
-            if (input === config.adminPin) {
+            if (input === currentConfig.adminPin) {
                 isAdminLoggedIn = true;
                 closeAdminModal();
                 switchView('admin');
@@ -569,12 +632,12 @@
                 badge.innerText = "Mode Admin";
                 badge.className = "bg-green-700 text-xs px-3 py-1.5 rounded-full font-semibold";
                 toggleBtn.classList.add('hidden');
-                renderLaporan();
+                filterAndRenderTable();
             } else {
                 aView.classList.add('hidden');
                 kView.classList.remove('hidden');
                 badge.innerText = "Mode Karyawan";
-                badge.className = "bg-blue-800 text-xs px-3 py-1.5 rounded-full font-semibold";
+                badge.className = "bg-blue-900 text-xs px-3 py-1.5 rounded-full font-semibold";
                 toggleBtn.classList.remove('hidden');
             }
         }
@@ -598,16 +661,15 @@
             }
         }
 
-        function renderLaporan() {
+        function filterAndRenderTable() {
             const tbody = document.getElementById('table-laporan-body');
-            const records = JSON.parse(localStorage.getItem('absen_records') || '[]');
             const periode = document.getElementById('filter-periode').value;
             const searchNama = document.getElementById('filter-nama').value.toLowerCase();
 
             document.getElementById('print-date').innerText = `Dicetak pada: ${new Date().toLocaleString('id-ID')}`;
 
             const now = new Date();
-            const filtered = records.filter(item => {
+            const filtered = allAbsenRecords.filter(item => {
                 const itemDate = new Date(item.timestamp);
                 
                 if (searchNama && !item.nama.toLowerCase().includes(searchNama)) {
@@ -628,7 +690,7 @@
             });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-gray-500">Tidak ada data presensi yang cocok.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-gray-500">Tidak ada data presensi yang cocok di server cloud.</td></tr>`;
                 return;
             }
 
@@ -636,7 +698,7 @@
                 const dateFormatted = new Date(item.timestamp).toLocaleString('id-ID');
                 const badgeClass = item.tipe === 'MASUK' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800';
                 const fotoTag = item.foto 
-                    ? `<img src="${item.foto}" class="w-12 h-12 object-cover rounded-md mx-auto border" alt="Selfie">` 
+                    ? `<img src="${item.foto}" class="w-12 h-12 object-cover rounded-md mx-auto border shadow-sm" alt="Selfie">` 
                     : `<span class="text-xs text-gray-400">Tanpa Foto</span>`;
                 
                 return `
@@ -654,10 +716,11 @@
             }).join('');
         }
 
-        function clearHistory() {
-            if (confirm("Apakah Anda yakin ingin menghapus seluruh riwayat presensi?")) {
-                localStorage.removeItem('absen_records');
-                renderLaporan();
+        function clearCloudHistory() {
+            if (confirm("Apakah Anda yakin ingin menghapus SELURUH riwayat presensi dari Cloud Database terpusat? Perubahan ini akan mempengaruhi semua perangkat!")) {
+                db.ref('records').remove().then(() => {
+                    alert('Seluruh data cloud absensi berhasil dibersihkan.');
+                }).catch(err => alert('Gagal menghapus data: ' + err.message));
             }
         }
     </script>
